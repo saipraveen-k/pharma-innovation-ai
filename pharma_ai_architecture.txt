@@ -1,0 +1,297 @@
+
+╔════════════════════════════════════════════════════════════════════════════════╗
+║           PHARMA INNOVATION AGENTIC AI SYSTEM - ARCHITECTURE                   ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ SYSTEM ARCHITECTURE LAYERS                                                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+1. USER INTERFACE LAYER
+   ├─ FastAPI REST Endpoint (localhost:8000/search)
+   ├─ Accepts queries: "Find unmet needs for Molecule X", etc.
+   └─ Returns JSON with task_id for async tracking
+
+2. ORCHESTRATION LAYER (Master Agent)
+   ├─ Receives user query
+   ├─ Uses LLM to decompose into subtasks
+   ├─ Assigns tasks to appropriate worker agents
+   ├─ Monitors progress in real-time
+   └─ Synthesizes final report
+
+3. WORKER AGENT LAYER (CrewAI Agents)
+   ├─ IQVIA Insights Agent → Market data, trends, competition
+   ├─ EXIM Trade Agent → Import/export data via API
+   ├─ Patent Landscape Agent → USPTO, patent expiry analysis
+   ├─ Clinical Trials Agent → ClinicalTrials.gov data
+   ├─ Internal Knowledge Agent → PDF summaries from company
+   ├─ Web Intelligence Agent → Scientific articles, regulatory info
+   └─ Report Generation Agent → PDF conversion with charts
+
+4. DATA SOURCE LAYER
+   ├─ Public APIs:
+   │  ├─ ClinicalTrials.gov API (no auth required)
+   │  ├─ USPTO API
+   │  ├─ PubMed Central API
+   │  └─ WHO/EMA Regulatory Sites
+   ├─ Subscription APIs (with mocked data):
+   │  ├─ IQVIA (simulated)
+   │  ├─ EXIM Trade Database (simulated)
+   │  └─ PatentScope
+   ├─ Internal Knowledge:
+   │  └─ PDFs, documents, strategy docs (VectorDB)
+   └─ Web Search:
+      └─ Searx/Google Custom Search API
+
+5. STORAGE & PERSISTENCE
+   ├─ Vector Database (Chroma/FAISS) for documents
+   ├─ Cache layer (Redis) for API responses
+   ├─ File storage for generated PDFs
+   └─ PostgreSQL for task history & metadata
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ DATA FLOW DIAGRAM                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+User Query
+    ↓
+  [Master Agent - Query Analyzer]
+    ↓
+  [Task Decomposer] → Splits into:
+    ├─ Market Analysis Task
+    ├─ Patent Analysis Task
+    ├─ Clinical Trial Task
+    ├─ Regulatory Compliance Task
+    ├─ Repurposing Opportunity Task
+    └─ Report Generation Task
+    ↓
+  [Parallel Task Execution]
+    ├─ IQVIA Agent + Web Intelligence Agent (Market)
+    ├─ Patent Agent (Patents)
+    ├─ Clinical Trials Agent (Trials)
+    ├─ Internal Knowledge Agent (Company context)
+    └─ All agents collect data
+    ↓
+  [Result Aggregation]
+    ├─ Compile findings
+    ├─ Cross-validate data
+    ├─ Identify conflicts/contradictions
+    └─ Score opportunities
+    ↓
+  [Report Generation Agent]
+    ├─ Create structured PDF
+    ├─ Add charts, tables, citations
+    ├─ Highlight recommendations
+    └─ Store in archive
+    ↓
+  User Report
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ AGENT SPECIFICATIONS                                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+MASTER ORCHESTRATOR AGENT
+├─ Role: Conductor and strategist
+├─ Goal: Understand user intent, break into tasks, coordinate agents
+├─ Tools: Task planner, Agent selector, Result synthesizer
+├─ Memory: Long-term (conversation history), Entity (key findings)
+└─ Outputs: Structured JSON task assignments
+
+IQVIA INSIGHTS AGENT (Market Intelligence)
+├─ Role: Market analyst
+├─ Goal: Fetch market size, competition, trends for molecules
+├─ Tools: 
+│  ├─ IQVIA API (mocked with sample data)
+│  ├─ Web search for market trends
+│  └─ Competitive intelligence database
+├─ Sources:
+│  ├─ IQVIA market reports (simulated)
+│  ├─ Industry publications
+│  └─ Financial reports
+└─ Outputs: Market analysis JSON
+
+EXIM TRADE AGENT (Export/Import Intelligence)
+├─ Role: Trade analyst
+├─ Goal: Analyze import/export patterns for molecules
+├─ Tools:
+│  ├─ EXIM API (customs data - mocked)
+│  ├─ UN Comtrade API
+│  └─ Regional trade databases
+├─ Sources:
+│  ├─ Customs data by country
+│  ├─ Trade volumes and values
+│  └─ Regulatory trends by region
+└─ Outputs: Trade analysis with market potential
+
+PATENT LANDSCAPE AGENT (IP Intelligence)
+├─ Role: Patent analyst
+├─ Goal: Search patents, identify expiry dates, flag risks
+├─ Tools:
+│  ├─ USPTO API
+│  ├─ WIPO PatentScope
+│  ├─ Google Patents API
+│  └─ Patent clustering ML
+├─ Searches:
+│  ├─ Active patents for molecule
+│  ├─ Patent expiry timeline
+│  ├─ Freedom-to-operate analysis
+│  └─ Competitor patent portfolio
+└─ Outputs: Patent landscape JSON with freedom-to-operate score
+
+CLINICAL TRIALS AGENT (Research Intelligence)
+├─ Role: Clinical researcher
+├─ Goal: Find ongoing trials, sponsors, indications
+├─ Tools:
+│  ├─ ClinicalTrials.gov API
+│  ├─ WHO ICTRP API
+│  └─ Trial results databases
+├─ Searches:
+│  ├─ Trials with molecule of interest
+│  ├─ Trial phase and status
+│  ├─ Primary outcomes
+│  └─ Sponsor and geography
+└─ Outputs: Clinical trials JSON with opportunity flags
+
+INTERNAL KNOWLEDGE AGENT (Company Intelligence)
+├─ Role: Company archivist
+├─ Goal: Retrieve internal PDFs, strategies, prior research
+├─ Tools:
+│  ├─ Vector database (Chroma) for documents
+│  ├─ PDF reader and chunker
+│  └─ Semantic search
+├─ Sources:
+│  ├─ Company strategy documents
+│  ├─ Prior R&D reports
+│  ├─ Approved project archives
+│  └─ Regulatory submissions
+└─ Outputs: Internal context JSON with prior art
+
+WEB INTELLIGENCE AGENT (Scientific Intelligence)
+├─ Role: Scientific researcher
+├─ Goal: Search scientific literature, regulatory guidelines
+├─ Tools:
+│  ├─ PubMed/Google Scholar search
+│  ├─ ScienceDirect API
+│  ├─ Regulatory body websites (FDA, EMA)
+│  └─ Web scraping with BeautifulSoup
+├─ Searches:
+│  ├─ Peer-reviewed articles on molecule
+│  ├─ Unmet medical needs in disease area
+│  ├─ Regulatory guidance documents
+│  └─ Scientific consensus on mechanisms
+└─ Outputs: Scientific findings JSON with evidence
+
+REPORT GENERATION AGENT (Output Specialist)
+├─ Role: Technical writer and designer
+├─ Goal: Create professional PDF reports with visuals
+├─ Tools:
+│  ├─ ReportLab (PDF generation)
+│  ├─ Matplotlib (charts)
+│  ├─ Pandas (data tables)
+│  └─ Jinja2 (templating)
+├─ Report Sections:
+│  ├─ Executive Summary
+│  ├─ Market Analysis (charts)
+│  ├─ Patent Landscape (timeline)
+│  ├─ Clinical Trials (table)
+│  ├─ Regulatory Status
+│  ├─ Repurposing Opportunities (ranked)
+│  ├─ Competitive Analysis
+│  ├─ Recommendations
+│  └─ References & Appendices
+└─ Outputs: PDF file + JSON data
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ QUERY EXAMPLES & AGENT ROUTING                                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Query: "Find unmet needs for Molecule X"
+├─ Master Agent decomposes to:
+│  ├─ → Patent Agent: Check if molecule is patented
+│  ├─ → Clinical Trials Agent: Find existing trials
+│  ├─ → Web Intelligence Agent: Search for unmet needs literature
+│  ├─ → IQVIA Agent: Market size for potential indications
+│  └─ → Report Agent: Summarize findings
+└─ Output: List of 5-10 unmet need opportunities ranked by score
+
+Query: "Check current clinical trials for this mechanism"
+├─ Master Agent decomposes to:
+│  ├─ → Clinical Trials Agent: Get trials by mechanism
+│  ├─ → Internal Knowledge Agent: Check prior company trials
+│  ├─ → Web Intelligence Agent: Find summary articles
+│  └─ → Report Agent: Create comparison table
+└─ Output: Structured trial comparison with key metrics
+
+Query: "Which diseases could this drug be repurposed for?"
+├─ Master Agent decomposes to:
+│  ├─ → Patent Agent: Verify patent status
+│  ├─ → Web Intelligence Agent: Scientific literature mining
+│  ├─ → Clinical Trials Agent: Trials mentioning similar mechanisms
+│  ├─ → IQVIA Agent: Market attractiveness of target diseases
+│  ├─ → Internal Knowledge Agent: Prior exploration by company
+│  └─ → Report Agent: Ranked opportunity list
+└─ Output: Top 10 repurposing opportunities with scores
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ IMPLEMENTATION STACK                                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Backend Framework:
+├─ Framework: FastAPI (async, production-ready)
+├─ Agent Orchestration: CrewAI + LangGraph
+├─ LLM: OpenAI GPT-4 (primary), Claude 3 (fallback)
+├─ Async Task Queue: Celery + Redis
+└─ API Gateway: Uvicorn
+
+Data Processing:
+├─ Vector DB: Chroma (local) or Pinecone (cloud)
+├─ Cache: Redis
+├─ Database: PostgreSQL
+└─ File Storage: MinIO or S3
+
+APIs & Integrations:
+├─ Public: ClinicalTrials.gov, USPTO, PubMed, WHO
+├─ Mocked: IQVIA, EXIM, PatentScope (with sample data)
+├─ Internal: PDF upload, document store
+└─ Web: BeautifulSoup, Selenium for scraping
+
+Report Generation:
+├─ PDF: ReportLab
+├─ Charts: Matplotlib, Plotly
+├─ Tables: Pandas
+└─ Storage: Local file system or S3
+
+Monitoring:
+├─ Logging: Python logging + ELK stack
+├─ Tracing: LangSmith for agent monitoring
+├─ Metrics: Prometheus + Grafana
+└─ Error handling: Sentry
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ SCALABILITY & PRODUCTION CONSIDERATIONS                                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Scaling Strategies:
+├─ Horizontal: Load balance FastAPI instances
+├─ Task Distribution: Celery workers for parallel agent execution
+├─ Caching: Redis for API response caching (24h TTL)
+└─ Database: Connection pooling, read replicas for analytics
+
+High Availability:
+├─ Multi-region deployment
+├─ Failover for external APIs
+├─ Circuit breaker pattern for external calls
+└─ Graceful degradation (use cached data if API fails)
+
+Cost Optimization:
+├─ Use cheaper models for simple tasks (GPT-3.5)
+├─ Batch API calls during off-hours
+├─ Cache frequently accessed data
+└─ Use mocked data for demo/testing
+
+Security:
+├─ API keys in environment variables
+├─ VPC for database connections
+├─ Role-based access control (RBAC)
+├─ Input validation and sanitization
+└─ Audit logging for all searches
