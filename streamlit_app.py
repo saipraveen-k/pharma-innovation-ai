@@ -704,6 +704,6 @@ st.markdown("""
     <div style='text-align: center; padding: 2rem;'>
         <p style='color: #00FFD9; font-weight: bold; font-size: 18px;'>💊 PharmaRep Master</p>
         <p style='color: #00CED1; font-size: 0.9rem;'>Powered by LangChain, FastAPI & Streamlit</p>
-        <p style='color: #B0E0E6; font-size: 0.8rem;'>© 2024 Advanced Pharmaceutical Intelligence Platform</p>
+        <p style='color: #B0E0E6; font-size: 0.8rem;'>© 2025 Advanced Pharmaceutical Intelligence Platform - NextGen Builders</p>
     </div>
 """, unsafe_allow_html=True)
