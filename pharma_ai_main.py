@@ -40,7 +40,7 @@ from reportlab.lib import colors
 
 # Vector DB for internal knowledge
 from langchain_community.vectorstores import Chroma
-from langchain_text_splitters import CharacterTextSplitter
+from langchain.text_splitter import CharacterTextSplitter
 
 
 # Config
